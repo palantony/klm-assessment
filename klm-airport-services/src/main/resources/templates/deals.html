@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet"
+	href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+
+
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<title>Deals</title>
+
+
+<script th:inline="javascript">
+	/*<![CDATA[*/
+
+	var originAirportList = /*[[${originAirportList}]]*/'default';
+	var originTerm = /*[[${originTerm}]]*/'default';
+
+	$(function() {
+		$("#originInput").autocomplete({
+			source : originAirportList
+		});
+	});
+
+	if (originTerm != null) {
+		$(document).ready(function() {
+			$("#originInput").val(originTerm);
+		});
+	}
+
+	/*]]>*/
+</script>
+
+
+
+<script>
+	function fetchOrigin() {
+		var originTerm = document.getElementById('originInput').value;
+		window.location.replace("/airports/origin/" + originTerm);
+	}
+
+	function fetchDestination() {
+		//@TODO Destination logic 
+	}
+
+	function findFare() {
+
+	}
+</script>
+
+
+
+<script>
+	window.addEventListener('DOMContentLoaded', function() {
+
+		$("#faresPanel").on(
+				"submit",
+				function(e) {
+					var origin = document.getElementById('originInput').value;
+					var destination = document
+							.getElementById('destinationInput').value;
+
+					if (!origin) {
+						alert("Please select origin");
+						return;
+					}
+
+					if (!destination) {
+						alert("Please select destination");
+						return;
+					}
+
+					origin = "BLR";
+					destination = "AMS";
+
+					$("#searchPanel .suggestions").empty();
+
+					$button = $("#faresPanel input[type='submit']");
+					$button.prop("disabled", true);
+					$button.data("caption", $button.val());
+					$button.val("Please wait ...");
+					$.ajax({
+						url : "/fares/" + origin + "/" + destination
+					}).done(
+							function(data) {
+								
+								var $p = $("#faresPanel");
+								$p.find(".fare-detail").text(
+										data.amount + " " + data.currency);
+								$p.find(".origin-title").text(
+										data.origin.name + " ("
+												+ data.origin.code + ")");
+								$p.find(".origin-desc").text(
+										data.origin.description);
+								$p.find(".destination-title").text(
+										data.destination.name + " ("
+												+ data.destination.code + ")");
+								$p.find(".destination-desc").text(
+										data.destination.description);
+								$p.show();
+
+								$button.prop("disabled", false);
+								$button.val($button.data("caption"));
+							});
+				});
+	});
+</script>
+
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse" th:fragment="header">
+		<div>
+			<ul class="nav navbar-nav">
+				<li><a href="/home">Home</a></li>
+				<li class="/active"><a href="/deals">Deals</a></li>
+				<li><a href="/metrics">Metrics</a></li>
+			</ul>
+
+		</div>
+	</nav>
+
+	<div class="container">
+
+		<div class="ui-widget">
+			<form class="origin-form">
+				<table>
+					<tr>
+						<td><label for="tags">&nbsp;Select Origin&nbsp;&nbsp;</label></td>
+						<td>&nbsp;<input id="originInput" size="40"
+							placeholder="keyword to find origin"></td>
+						<td>&nbsp;
+							<button type="button" class="btn btn-default"
+								onclick="fetchOrigin()">&nbsp;Select Origin&nbsp;</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+			<form id="destination-form">
+				<table>
+					<tr>
+						<td>&nbsp;<label for="tags">Select Destination
+								&nbsp;&nbsp;</label></td>
+						<td>&nbsp;<input id="destinationInput" size="40"
+							value="Amsterdam - Schiphol (AMS), Netherlands" readonly>&nbsp;
+						</td>
+						<td>&nbsp;
+							<button type="button" 
+								onclick="fetchDestination()">&nbsp;Select
+								Destination&nbsp;</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+			<form id="faresPanel">
+				<table>
+					<tr>
+						<td colspan="3"><input type="submit" 
+							value="Find Fare" /></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+
+		<div class="row">
+			<div id="faresPanel" style="display: none;">
+				<div>
+					<div class="origin-title"></div>
+					<div class="origin-desc"></div>
+				</div>
+				<div>
+					<div class="destination-title"></div>
+					<div class="destination-desc"></div>
+				</div>
+				<div>
+					<span class="fare-detail"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
